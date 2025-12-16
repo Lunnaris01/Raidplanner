@@ -1,7 +1,24 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.24.5"
+          go-version: "1.23.5"
       # Check if Program finishes.
       - name: Run Tests
-        run: go build -o CivAPI ./cmd/Raidplanner/main.go
+        run: go build -o CivAPI ./cmd/CivAPI/main.go
