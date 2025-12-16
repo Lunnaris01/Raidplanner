@@ -1,0 +1,7 @@
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.5"
+      # Check if Program finishes.
+      - name: Run Tests
+        run: go build -o CivAPI ./cmd/Raidplanner/main.go
