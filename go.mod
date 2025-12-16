@@ -1,4 +1,4 @@
-module raidplanner
+module github.com/Lunnaris01/Raidplanner
 
 go 1.24.5
 
