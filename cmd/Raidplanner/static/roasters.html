@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roasters</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="login-container">
+
+        <div id="add-roaster-form" class="hidden">
+            <h2>Add New Roaster</h2>
+            <form id="add-roaster-form-content">
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required />
+                </div>
+                <div class="input-group">
+                    <label for="server">Server</label>
+                    <input type="text" id="server" name="server" required />
+                </div>
+                <button type="submit" class="btn sign-up">Add Roaster</button>
+                <button type="button" id="cancel-btn" class="btn sign-up">Cancel</button>
+            </form>
+        </div>
+
+        <!-- Roasters List -->
+        <div class="roaster-list">
+            <h2>Existing Roasters</h2>
+            <table class="roaster-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Server</th>
+                        <th>Created At</th>
+                        <th>Actions</th> <!-- For the delete button -->
+                    </tr>
+                </thead>
+                <tbody id="roaster-table-body">
+                    <!-- Rows will be populated dynamically here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add JavaScript to fetch and populate the roasters -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch existing roasters
+            fetchRoasters();
+
+            // Cancel Button
+            document.getElementById('cancel-btn').addEventListener('click', function() {
+                document.getElementById('add-roaster-form').classList.add('hidden');
+            });
+
+            // Add Roaster Form Submit
+            document.getElementById('add-roaster-form-content').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const server = document.getElementById('server').value;
+
+                // Call API to add a new roaster
+                fetch('/api/roasters', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        server: server,
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('add-roaster-form').classList.add('hidden');
+                        fetchRoasters(); // Refresh the list of roasters
+                    } else {
+                        alert('Error adding roaster.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error adding roaster:', error);
+                    alert('Error adding roaster.');
+                });
+            });
+        });
+
+        // Function to fetch and populate roasters
+        function fetchRoasters() {
+            fetch('/api/roasters')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('roaster-table-body');
+                    tableBody.innerHTML = ''; // Clear existing rows
+                    data.forEach(roaster => {
+                        const row = document.createElement('tr');
+
+                        // Create cells for each piece of data
+                        const idCell = document.createElement('td');
+                        idCell.textContent = roaster.RoasterID; // Display RoasterID
+                        
+                        const usernameCell = document.createElement('td');
+                        //usernameCell.textContent = roaster.Username;  // Corrected property name
+                        const a = document.createElement('a');
+                        a.textContent = roaster.Username;
+                        a.href = `/roasters/${roaster.RoasterID}`;
+                        a.style.color = 'inherit';
+                        a.style.textDecoration = 'none';
+
+                        usernameCell.appendChild(a);
+                        
+                        const serverCell = document.createElement('td');
+                        serverCell.textContent = roaster.Server;      // Corrected property name
+                        
+                        const createdAtCell = document.createElement('td');
+                        createdAtCell.textContent = new Date(roaster.CreatedAt).toLocaleDateString();  // Corrected property name
+
+                        const actionsCell = document.createElement('td');
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = '❌'; // Red X button
+                        deleteButton.classList.add('delete-btn');
+                        deleteButton.addEventListener('click', function() {
+                            // Confirm before deleting
+                            const confirmDelete = confirm('Are you sure you want to delete this roaster?');
+                            if (confirmDelete) {
+                                deleteRoaster(roaster.RoasterID);
+                            }
+                        });
+
+                        // Append the delete button to the actions column
+                        actionsCell.appendChild(deleteButton);
+
+                        // Append all cells to the row
+                        row.appendChild(idCell);
+                        row.appendChild(usernameCell);
+                        row.appendChild(serverCell);
+                        row.appendChild(createdAtCell);
+                        row.appendChild(actionsCell);
+
+                        // Append the row to the table body
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error fetching roasters:', error));
+        }
+
+        // Function to delete a roaster
+        function deleteRoaster(roasterID) {
+            fetch(`/api/roasters/${roasterID}`, {
+                method: 'DELETE',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    fetchRoasters(); // Refresh the list after deletion
+                } else {
+                    alert('Error deleting roaster.');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting roaster:', error);
+                alert('Error deleting roaster.');
+            });
+        }
+    </script>
+
+</body>
+</html>
